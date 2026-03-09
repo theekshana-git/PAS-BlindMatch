@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36804.6 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PAS.BlindMatch", "PAS.BlindMatch\PAS.BlindMatch.csproj", "{299A6880-F6B0-403E-A3D0-1A3E6B13CE3C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{299A6880-F6B0-403E-A3D0-1A3E6B13CE3C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{299A6880-F6B0-403E-A3D0-1A3E6B13CE3C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{299A6880-F6B0-403E-A3D0-1A3E6B13CE3C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{299A6880-F6B0-403E-A3D0-1A3E6B13CE3C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1A624335-FA36-466B-96C5-9854016AA035}
+	EndGlobalSection
+EndGlobal
