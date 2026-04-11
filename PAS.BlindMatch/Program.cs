@@ -1,7 +1,8 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using PAS.BlindMatch.Data;
-using PAS.BlindMatch.Models; 
+using PAS.BlindMatch.Models;
+using PAS.BlindMatch.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +12,8 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
+
+builder.Services.AddScoped<IMatchingService, MatchingService>();
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
