@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using PAS.BlindMatch.Data;
 using PAS.BlindMatch.Models;
 using PAS.BlindMatch.Services;
+using PAS.BlindMatch.DataSeeders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -52,5 +53,11 @@ app.MapControllerRoute(
     pattern: "{controller=Dashboard}/{action=Index}/{id?}");
 
 app.MapRazorPages();
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    await DbSeeder.SeedAsync(services);
+}
 
 app.Run();
