@@ -1,215 +1,138 @@
-﻿@model UserManagementViewModel
+﻿@model PAS.BlindMatch.ViewModels.UserManagementViewModel
 
 @{
-    ViewData["Title"] = "Secure Account Creation";
+    ViewData["Title"] = "User Management";
 }
 
-<style>
-    .admin-portal-container {
-        max-width: 800px;
-        margin: 2rem auto;
-        font-family: sans-serif;
-    }
-
-    .form-section, .table-section {
-        background: #fdfdfd;
-        padding: 20px;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        margin-bottom: 2rem;
-    }
-
-    .form-group {
-        margin-bottom: 1rem;
-    }
-
-        .form-group label {
-            display: block;
-            font-weight: bold;
-            margin-bottom: 0.5rem;
-        }
-
-    .form-control {
-        width: 100%;
-        padding: 8px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        box-sizing: border-box;
-    }
-
-    .btn-submit {
-        background-color: #000;
-        color: white;
-        padding: 10px 20px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-weight: bold;
-    }
-
-        .btn-submit:hover {
-            background-color: #000;
-        }
-
-    .users-table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-
-        .users-table th, .users-table td {
-            border: 1px solid #ddd;
-            padding: 12px;
-            text-align: left;
-        }
-
-        .users-table th {
-            background-color: #f8f9fa;
-        }
-
-    .success-alert {
-        color: #000;
-        background-color: #d1e7dd;
-        padding: 15px;
-        border-radius: 4px;
-        margin-bottom: 20px;
-    }
-
-    .text-danger {
-        color: red;
-        font-size: 0.875em;
-    }
-
-    .btn-sm {
-        padding: 6px 12px;
-        font-size: 0.875em;
-        border-radius: 4px;
-        border: none;
-        cursor: pointer;
-        text-decoration: none;
-        display: inline-block;
-        color: white;
-    }
-
-    .btn-edit {
-        background-color: #000;
-        color: #ffff;
-    }
-
-        .btn-edit:hover {
-            background-color: #000;
-        }
-
-    .btn-delete {
-        background-color: #dc3545;
-        margin-left: 5px;
-    }
-
-        .btn-delete:hover {
-            background-color: #c82333;
-        }
-
-    .action-form {
-        display: inline;
-    }
-</style>
-
-<div class="admin-portal-container">
-    <h2>User Management Portal</h2>
+<div class="mt-4">
+    <div class="mb-4">
+        <h2 class="fw-bolder text-dark mb-1" style="letter-spacing: -0.5px;">User Management</h2>
+        <p class="text-muted">Securely provision accounts for students and faculty.</p>
+    </div>
 
     @if (TempData["SuccessMessage"] != null)
     {
-        <div class="success-alert">@TempData["SuccessMessage"]</div>
+        <div class="alert alert-success alert-dismissible fade show border-success-subtle bg-success bg-opacity-10" role="alert">
+            <span class="text-success fw-medium">@TempData["SuccessMessage"]</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
     }
 
-    <div class="form-section">
-        <h3>Create New Account</h3>
-        <form asp-action="UserManagement" method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="card border-secondary-subtle shadow-sm rounded-4 p-4 h-100">
+                <h5 class="fw-bolder mb-4">Create Account</h5>
 
-            <div class="form-group">
-                <label asp-for="FirstName">First Name</label>
-                <input asp-for="FirstName" class="form-control" />
-                <span asp-validation-for="FirstName" class="text-danger"></span>
+                <form asp-action="UserManagement" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label asp-for="FirstName" class="form-label small text-muted mb-1 fw-bold">First Name</label>
+                            <input asp-for="FirstName" class="form-control border-secondary-subtle" />
+                            <span asp-validation-for="FirstName" class="text-danger small"></span>
+                        </div>
+                        <div class="col-6">
+                            <label asp-for="LastName" class="form-label small text-muted mb-1 fw-bold">Last Name</label>
+                            <input asp-for="LastName" class="form-control border-secondary-subtle" />
+                            <span asp-validation-for="LastName" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label small text-muted mb-1 fw-bold">Email Address</label>
+                        <input asp-for="Email" type="email" class="form-control border-secondary-subtle" />
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="UniversityId" class="form-label small text-muted mb-1 fw-bold">University ID</label>
+                        <input asp-for="UniversityId" class="form-control border-secondary-subtle" />
+                        <span asp-validation-for="UniversityId" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Password" class="form-label small text-muted mb-1 fw-bold">Temporary Password</label>
+                        <input asp-for="Password" type="password" class="form-control border-secondary-subtle" />
+                        <span asp-validation-for="Password" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Role" class="form-label small text-muted mb-1 fw-bold">Assign Role</label>
+                        <select asp-for="Role" class="form-select border-secondary-subtle">
+                            <option value="">-- Select Role --</option>
+                            <option value="Student">Student</option>
+                            <option value="Supervisor">Supervisor</option>
+                            <option value="Admin">Admin</option>
+                        </select>
+                        <span asp-validation-for="Role" class="text-danger small"></span>
+                    </div>
+
+                    <button type="submit" class="btn btn-dark w-100 rounded-pill py-2 fw-medium">Provision Account</button>
+                </form>
             </div>
+        </div>
 
-            <div class="form-group">
-                <label asp-for="LastName">Last Name</label>
-                <input asp-for="LastName" class="form-control" />
-                <span asp-validation-for="LastName" class="text-danger"></span>
+        <div class="col-lg-8">
+            <div class="card border-secondary-subtle shadow-sm rounded-4 p-4 h-100">
+                <h5 class="fw-bolder mb-4">Active System Users</h5>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-muted small fw-bold border-0">ID</th>
+                                <th class="text-muted small fw-bold border-0">Name</th>
+                                <th class="text-muted small fw-bold border-0">Email</th>
+                                <th class="text-muted small fw-bold border-0 text-center">Role</th>
+                                <th class="text-muted small fw-bold border-0 text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="border-top-0">
+                            @if (Model.ActiveUsers != null && Model.ActiveUsers.Any())
+                            {
+                                foreach (var user in Model.ActiveUsers)
+                                {
+                                    <tr>
+                                        <td class="small font-monospace text-muted">@user.UniversityId</td>
+                                        <td class="fw-medium">@user.FirstName @user.LastName</td>
+                                        <td class="small text-muted">@user.Email</td>
+                                        <td class="text-center">
+                                            @if (user.Role == "Admin")
+                                            {
+                                                <span class="badge bg-danger bg-opacity-10 text-danger border border-danger-subtle rounded-pill px-3 py-1">Admin</span>
+                                            }
+                                            else if (user.Role == "Supervisor")
+                                            {
+                                                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle rounded-pill px-3 py-1">Supervisor</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary-subtle rounded-pill px-3 py-1">Student</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <div class="d-flex justify-content-end align-items-center gap-2">
+                                                <a asp-action="EditUser" asp-route-id="@user.Id" class="btn btn-sm btn-outline-dark rounded-pill px-3">Edit</a>
+                                                <form asp-action="DeleteUser" asp-route-id="@user.Id" method="post" class="m-0" onsubmit="return confirm('WARNING: Are you sure you want to delete @user.FirstName?');">
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3">Delete</button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="5" class="text-center py-5 text-muted small">No active users found.</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
             </div>
-
-            <div class="form-group">
-                <label asp-for="Email">Email Address</label>
-                <input asp-for="Email" type="email" class="form-control" />
-                <span asp-validation-for="Email" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <label asp-for="UniversityId">University ID</label>
-                <input asp-for="UniversityId" class="form-control" />
-                <span asp-validation-for="UniversityId" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <label asp-for="Password">Password</label>
-                <input asp-for="Password" type="password" class="form-control" />
-                <span asp-validation-for="Password" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <label asp-for="Role">Assign Role</label>
-                <select asp-for="Role" class="form-control">
-                    <option value="">-- Select a Role --</option>
-                    <option value="Student">Student</option>
-                    <option value="Supervisor">Supervisor</option>
-                </select>
-                <span asp-validation-for="Role" class="text-danger"></span>
-            </div>
-
-            <button type="submit" class="btn-submit">Create Account</button>
-        </form>
-    </div>
-
-    <div class="table-section">
-        <h3>Active System Users</h3>
-        <table class="users-table">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>First Name</th>
-                    <th>Last Name</th>
-                    <th>Email</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (Model.ActiveUsers != null && Model.ActiveUsers.Any())
-                {
-                    foreach (var user in Model.ActiveUsers)
-                    {
-                        <tr>
-                            <td>@user.UniversityId</td>
-                            <td>@user.FirstName</td>
-                            <td>@user.LastName</td>
-                            <td>@user.Email</td>
-                            <td>
-                                <a asp-action="EditUser" asp-route-id="@user.Id" class="btn-sm btn-edit">Edit</a>
-
-                                <form asp-action="DeleteUser" asp-route-id="@user.Id" method="post" class="action-form" onsubmit="return confirm('Are you sure you want to delete @user.FirstName?');">
-                                    <button type="submit" class="btn-sm btn-delete">Delete</button>
-                                </form>
-                            </td>
-                        </tr>
-                    }
-                }
-                else
-                {
-                    <tr>
-                        <td colspan="4" style="text-align: center;">No active users found.</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+        </div>
     </div>
 </div>
 

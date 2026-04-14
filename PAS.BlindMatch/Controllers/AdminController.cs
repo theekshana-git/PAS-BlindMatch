@@ -3,9 +3,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using PAS.BlindMatch.Models;
 using PAS.BlindMatch.ViewModels;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using PAS.BlindMatch.ViewModels;
 
 namespace PAS.BlindMatch.Controllers
 {
@@ -19,17 +19,45 @@ namespace PAS.BlindMatch.Controllers
             _userManager = userManager;
         }
 
+        
         public IActionResult AllocationOversight()
         {
             return View();
         }
 
+        public IActionResult ResearchAreas()
+        {
+            return View();
+        }
+
+        
+        private async Task<List<UserWithRoleViewModel>> GetActiveUsersListAsync()
+        {
+            var users = _userManager.Users.ToList();
+            var userList = new List<UserWithRoleViewModel>();
+
+            foreach (var user in users)
+            {
+                var roles = await _userManager.GetRolesAsync(user);
+                userList.Add(new UserWithRoleViewModel
+                {
+                    Id = user.Id,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    Email = user.Email,
+                    UniversityId = user.UniversityId,
+                    Role = roles.FirstOrDefault() ?? "Unassigned"
+                });
+            }
+            return userList;
+        }
+
         [HttpGet]
-        public IActionResult UserManagement()
+        public async Task<IActionResult> UserManagement()
         {
             var model = new UserManagementViewModel
             {
-                ActiveUsers = _userManager.Users.ToList()
+                ActiveUsers = await GetActiveUsersListAsync()
             };
             return View(model);
         }
@@ -63,7 +91,8 @@ namespace PAS.BlindMatch.Controllers
                 }
             }
 
-            model.ActiveUsers = _userManager.Users.ToList();
+            
+            model.ActiveUsers = await GetActiveUsersListAsync();
             return View(model);
         }
 
@@ -87,7 +116,6 @@ namespace PAS.BlindMatch.Controllers
             {
                 return NotFound();
             }
-
 
             var roles = await _userManager.GetRolesAsync(user);
             var currentRole = roles.FirstOrDefault();
@@ -122,6 +150,7 @@ namespace PAS.BlindMatch.Controllers
                 user.UserName = model.Email;
                 user.UniversityId = model.UniversityId;
 
+                // Handle optional password reset
                 if (!string.IsNullOrEmpty(model.NewPassword))
                 {
                     var token = await _userManager.GeneratePasswordResetTokenAsync(user);
@@ -129,7 +158,6 @@ namespace PAS.BlindMatch.Controllers
 
                     if (!passwordResult.Succeeded)
                     {
-
                         foreach (var error in passwordResult.Errors)
                         {
                             ModelState.AddModelError(string.Empty, error.Description);
@@ -142,6 +170,7 @@ namespace PAS.BlindMatch.Controllers
 
                 if (result.Succeeded)
                 {
+                    // Update role if changed
                     var currentRoles = await _userManager.GetRolesAsync(user);
                     await _userManager.RemoveFromRolesAsync(user, currentRoles);
                     await _userManager.AddToRoleAsync(user, model.Role);
