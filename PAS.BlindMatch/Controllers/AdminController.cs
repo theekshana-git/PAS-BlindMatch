@@ -1,6 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
+using PAS.BlindMatch.Data;
 using PAS.BlindMatch.Models;
 using PAS.BlindMatch.ViewModels;
 using System.Collections.Generic;
@@ -13,24 +16,116 @@ namespace PAS.BlindMatch.Controllers
     public class AdminController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly ApplicationDbContext _context;
 
-        public AdminController(UserManager<ApplicationUser> userManager)
+
+        public AdminController(UserManager<ApplicationUser> userManager, ApplicationDbContext context)
         {
             _userManager = userManager;
+            _context = context;
         }
+        // ==========================================
+        // ALLOCATION OVERSIGHT
+        // ==========================================
 
-        
-        public IActionResult AllocationOversight()
+        [HttpGet]
+        public async Task<IActionResult> AllocationOversight(string searchString, string statusFilter, string categoryFilter)
         {
-            return View();
+
+            var projectsQuery = _context.Projects
+                .Include(p => p.Student)
+                .Include(p => p.ResearchArea)
+                .Include(p => p.MatchRequests)
+                .ThenInclude(m => m.Supervisor)
+                .AsQueryable();
+
+
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                projectsQuery = projectsQuery.Where(p =>
+                    (p.Title != null && p.Title.Contains(searchString)) ||
+                    (p.Student != null && p.Student.FirstName != null && p.Student.FirstName.Contains(searchString)) ||
+                    (p.Student != null && p.Student.LastName != null && p.Student.LastName.Contains(searchString)));
+            }
+
+
+            if (!string.IsNullOrEmpty(statusFilter))
+            {
+            }
+
+
+            if (!string.IsNullOrEmpty(categoryFilter))
+            {
+                projectsQuery = projectsQuery.Where(p => p.ResearchArea != null && p.ResearchArea.Name == categoryFilter);
+            }
+
+            ViewBag.StatusOptions = new SelectList(new[] { "Pending", "Matched", "Rejected" });
+
+            var categories = await _context.ResearchAreas
+                .Where(r => !string.IsNullOrEmpty(r.Name))
+                .Select(r => r.Name)
+                .ToListAsync();
+
+            ViewBag.CategoryOptions = new SelectList(categories);
+
+            return View(await projectsQuery.ToListAsync());
         }
 
-        public IActionResult ResearchAreas()
+        [HttpPost]
+        public async Task<IActionResult> DeleteAllocation(int projectId)
         {
-            return View();
+
+            var project = await _context.Projects.FindAsync(projectId);
+            if (project != null)
+            {
+                _context.Projects.Remove(project);
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Project allocation successfully revoked.";
+            }
+            return RedirectToAction(nameof(AllocationOversight));
         }
 
-        
+        // ==========================================
+        // RESEARCH AREAS
+        // ==========================================
+
+        [HttpGet]
+        public async Task<IActionResult> ResearchAreas()
+        {
+            var areas = await _context.ResearchAreas.ToListAsync();
+            return View(areas);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddResearchArea(string areaName)
+        {
+            if (!string.IsNullOrWhiteSpace(areaName))
+            {
+                var newArea = new ResearchArea { Name = areaName };
+                _context.ResearchAreas.Add(newArea);
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = $"Research Area '{areaName}' added.";
+            }
+            return RedirectToAction(nameof(ResearchAreas));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteResearchArea(int id)
+        {
+            var area = await _context.ResearchAreas.FindAsync(id);
+            if (area != null)
+            {
+                _context.ResearchAreas.Remove(area);
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Research Area deleted.";
+            }
+            return RedirectToAction(nameof(ResearchAreas));
+        }
+
+        // ==========================================
+        // USER MANAGEMENT (Original Code Preserved)
+        // ==========================================
+
         private async Task<List<UserWithRoleViewModel>> GetActiveUsersListAsync()
         {
             var users = _userManager.Users.ToList();
@@ -91,7 +186,6 @@ namespace PAS.BlindMatch.Controllers
                 }
             }
 
-            
             model.ActiveUsers = await GetActiveUsersListAsync();
             return View(model);
         }
