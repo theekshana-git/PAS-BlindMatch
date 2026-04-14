@@ -4,7 +4,7 @@ namespace PAS.BlindMatch.Controllers
 {
     public class StudentController : Controller
     {
-        public IActionResult Index()
+        public IActionResult MyProject()
         {
             return View();
         }
