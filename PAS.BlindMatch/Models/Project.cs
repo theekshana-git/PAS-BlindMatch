@@ -1,41 +1,35 @@
-﻿using System;
+﻿using PAS.BlindMatch.Enums;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using PAS.BlindMatch.Enums;
 
 namespace PAS.BlindMatch.Models
 {
     public class Project
     {
-        [Key]
         public int Id { get; set; }
 
-        [Required(ErrorMessage = "Title is required.")]
-        [StringLength(150)]
-        public string Title { get; set; }
+        [Required(ErrorMessage = "A project title is required.")]
+        [StringLength(100, ErrorMessage = "The title cannot exceed 100 characters.")]
+        public string Title { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Abstract is required.")]
-        [MinLength(50)]
-        public string Abstract { get; set; }
+        // A+ Requirement: Lock down the Abstract field
+        [Required(ErrorMessage = "You must provide a project abstract.")]
+        [MinLength(50, ErrorMessage = "The abstract must be at least 50 characters long.")]
+        public string Abstract { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Technical Stack is required.")]
-        public string TechnicalStack { get; set; }
+        // Optional field based on your original model
+        public string? TechnicalStack { get; set; }
 
-        public ProjectStatus Status { get; set; } = ProjectStatus.Pending;
-
-        public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
-
-        [Required]
-        public string StudentId { get; set; }
-        [ForeignKey("StudentId")]
-        public virtual ApplicationUser Student { get; set; }
-
-        [Required]
+        [Required(ErrorMessage = "Please select a Research Area.")]
         public int ResearchAreaId { get; set; }
-        [ForeignKey("ResearchAreaId")]
-        public virtual ResearchArea ResearchArea { get; set; }
+        public ResearchArea? ResearchArea { get; set; }
 
-        public virtual ICollection<MatchRequest> MatchRequests { get; set; } = new List<MatchRequest>();
+        public string? StudentId { get; set; }
+        public ApplicationUser? Student { get; set; }
+
+        public ProjectStatus Status { get; set; }
+
+        // Restored navigation property so EF Core doesn't crash
+        public ICollection<MatchRequest>? MatchRequests { get; set; }
     }
 }

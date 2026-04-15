@@ -1,0 +1,65 @@
+﻿@model IEnumerable<PAS.BlindMatch.Models.Project>
+
+@{
+    ViewData["Title"] = "My Proposals";
+}
+
+<style>
+    /* Added margin-top to push the header down */
+    .page-header { margin-top: 2rem; margin-bottom: 2rem; }
+    .page-header h1 { font-size: 1.75rem; font-weight: 700; margin-bottom: 0.25rem; }
+    .page-header p { color: #6c757d; font-size: 0.95rem; }
+
+    .glass-card { background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid #eee; box-shadow: 0 4px 12px rgba(0,0,0,0.03); margin-bottom: 1.5rem; }
+    
+    .proposal-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; color: #212529; }
+    .proposal-meta { font-size: 0.85rem; color: #6c757d; margin-bottom: 1rem; display: flex; gap: 15px; }
+    .proposal-abstract { font-size: 0.95rem; color: #495057; line-height: 1.5; background: #f8f9fa; padding: 1rem; border-radius: 6px; border-left: 4px solid #ced4da; }
+    
+    .status-pill { padding: 4px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; color: white; display: inline-block; }
+    .status-pending { background-color: #fd7e14; }
+    .status-matched { background-color: #28a745; }
+    .status-rejected { background-color: #dc3545; }
+</style>
+
+<div class="page-header">
+    <h1>My Proposals</h1>
+    <p>View the status of all your submitted project ideas.</p>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="glass-card" style="text-align: center; color: #6c757d; padding: 3rem;">
+        <h4>No proposals found.</h4>
+        <p>You haven't submitted any projects yet. Go to your submission form to propose an idea!</p>
+    </div>
+}
+else
+{
+    @foreach (var project in Model)
+    {
+        <div class="glass-card">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <div>
+                    <h3 class="proposal-title">@project.Title</h3>
+                    <div class="proposal-meta">
+                        <span><strong>Category:</strong> @(project.ResearchArea?.Name ?? "None")</span>
+                        <span>
+                            <strong>Tech Stack:</strong> @(string.IsNullOrEmpty(project.TechnicalStack) ? "N/A" : project.TechnicalStack)
+                        </span>
+                    </div>
+                </div>
+                <div>
+                    <span class="status-pill @(project.Status.ToString() == "Matched" ? "status-matched" : project.Status.ToString() == "Rejected" ? "status-rejected" : "status-pending")">
+                        @project.Status
+                    </span>
+                </div>
+            </div>
+            
+            <div class="proposal-abstract">
+                <strong>Abstract:</strong><br />
+                @project.Abstract
+            </div>
+        </div>
+    }
+}
