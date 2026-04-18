@@ -54,6 +54,10 @@ namespace PAS.BlindMatch.Data
                 .WithMany(r => r.SupervisorExpertises)
                 .HasForeignKey(se => se.ResearchAreaId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<Project>().HasIndex(p => p.Status);
+            builder.Entity<Project>().HasIndex(p => p.ResearchAreaId);
+            builder.Entity<MatchRequest>().HasIndex(m => m.SupervisorId);
         }
     }
 }

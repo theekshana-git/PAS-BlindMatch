@@ -1,4 +1,5 @@
 ﻿@model PAS.BlindMatch.ViewModels.ExpertiseViewModel
+
 @{
     ViewData["Title"] = "My Expertise";
 }
@@ -22,17 +23,51 @@
                 @foreach (var area in Model.AllAvailableAreas)
                 {
                     bool isChecked = Model.SelectedAreaIds.Contains(area.Key);
+
                     <div class="col-md-6">
+                        
                         <div class="form-check form-switch p-3 border rounded-3 @(isChecked ? "border-dark bg-light" : "border-secondary-subtle")">
-                            <input class="form-check-input ms-0 me-3" type="checkbox" role="switch" name="selectedAreaIds" value="@area.Key" id="chk_@area.Key" @(isChecked ? "checked" : "")>
-                            <label class="form-check-label fw-medium stretched-link cursor-pointer" for="chk_@area.Key">@area.Value</label>
+
+                            <input class="form-check-input ms-0 me-3"
+                                   type="checkbox"
+                                   role="switch"
+                                   name="selectedAreaIds"
+                                   value="@area.Key"
+                                   id="chk_@area.Key"
+                                   @(isChecked ? "checked" : "")>
+
+                           
+                            <label class="form-check-label fw-medium cursor-pointer w-100" for="chk_@area.Key">
+                                @area.Value
+                            </label>
                         </div>
                     </div>
                 }
             </div>
+
             <div class="mt-5 text-end border-top pt-4">
-                <button type="submit" class="btn btn-dark rounded-pill px-5 py-2 fw-medium">Save Preferences</button>
+                <button type="submit" class="btn btn-dark rounded-pill px-5 py-2 fw-medium">
+                    Save Preferences
+                </button>
             </div>
         </form>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        
+        document.querySelectorAll('.form-check-input').forEach(input => {
+            input.addEventListener('change', function() {
+                const parent = this.closest('.form-check');
+                if (this.checked) {
+                    parent.classList.remove('border-secondary-subtle');
+                    parent.classList.add('border-dark', 'bg-light');
+                } else {
+                    parent.classList.add('border-secondary-subtle');
+                    parent.classList.remove('border-dark', 'bg-light');
+                }
+            });
+        });
+    </script>
+}

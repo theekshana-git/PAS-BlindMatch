@@ -4,8 +4,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using PAS.BlindMatch.Data;
+using PAS.BlindMatch.Enums;
 using PAS.BlindMatch.Models;
 using PAS.BlindMatch.ViewModels;
+using PAS.BlindMatch.Services;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -17,28 +19,27 @@ namespace PAS.BlindMatch.Controllers
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
+        private readonly IMatchingService _matchingService;
 
-
-        public AdminController(UserManager<ApplicationUser> userManager, ApplicationDbContext context)
+        public AdminController(UserManager<ApplicationUser> userManager, ApplicationDbContext context, IMatchingService matchingService)
         {
             _userManager = userManager;
             _context = context;
+            _matchingService = matchingService;
+            
         }
-        // ==========================================
-        // ALLOCATION OVERSIGHT
-        // ==========================================
+
+        
 
         [HttpGet]
         public async Task<IActionResult> AllocationOversight(string searchString, string statusFilter, string categoryFilter)
         {
-
             var projectsQuery = _context.Projects
                 .Include(p => p.Student)
                 .Include(p => p.ResearchArea)
                 .Include(p => p.MatchRequests)
                 .ThenInclude(m => m.Supervisor)
                 .AsQueryable();
-
 
             if (!string.IsNullOrEmpty(searchString))
             {
@@ -48,18 +49,21 @@ namespace PAS.BlindMatch.Controllers
                     (p.Student != null && p.Student.LastName != null && p.Student.LastName.Contains(searchString)));
             }
 
-
+            
             if (!string.IsNullOrEmpty(statusFilter))
             {
+                if (System.Enum.TryParse<ProjectStatus>(statusFilter, true, out var parsedStatus))
+                {
+                    projectsQuery = projectsQuery.Where(p => p.Status == parsedStatus);
+                }
             }
-
 
             if (!string.IsNullOrEmpty(categoryFilter))
             {
                 projectsQuery = projectsQuery.Where(p => p.ResearchArea != null && p.ResearchArea.Name == categoryFilter);
             }
 
-            ViewBag.StatusOptions = new SelectList(new[] { "Pending", "Matched", "Rejected" });
+            ViewBag.StatusOptions = new SelectList(new[] { "Pending", "UnderReview", "Matched" });
 
             var categories = await _context.ResearchAreas
                 .Where(r => !string.IsNullOrEmpty(r.Name))
@@ -74,7 +78,6 @@ namespace PAS.BlindMatch.Controllers
         [HttpPost]
         public async Task<IActionResult> DeleteAllocation(int projectId)
         {
-
             var project = await _context.Projects.FindAsync(projectId);
             if (project != null)
             {
@@ -85,9 +88,7 @@ namespace PAS.BlindMatch.Controllers
             return RedirectToAction(nameof(AllocationOversight));
         }
 
-        // ==========================================
-        // RESEARCH AREAS
-        // ==========================================
+        
 
         [HttpGet]
         public async Task<IActionResult> ResearchAreas()
@@ -122,9 +123,7 @@ namespace PAS.BlindMatch.Controllers
             return RedirectToAction(nameof(ResearchAreas));
         }
 
-        // ==========================================
-        // USER MANAGEMENT (Original Code Preserved)
-        // ==========================================
+        
 
         private async Task<List<UserWithRoleViewModel>> GetActiveUsersListAsync()
         {
@@ -206,13 +205,9 @@ namespace PAS.BlindMatch.Controllers
         public async Task<IActionResult> EditUser(string id)
         {
             var user = await _userManager.FindByIdAsync(id);
-            if (user == null)
-            {
-                return NotFound();
-            }
+            if (user == null) return NotFound();
 
             var roles = await _userManager.GetRolesAsync(user);
-            var currentRole = roles.FirstOrDefault();
 
             var model = new EditUserViewModel
             {
@@ -221,7 +216,7 @@ namespace PAS.BlindMatch.Controllers
                 LastName = user.LastName,
                 Email = user.Email,
                 UniversityId = user.UniversityId,
-                Role = currentRole
+                Role = roles.FirstOrDefault()
             };
 
             return View(model);
@@ -233,10 +228,7 @@ namespace PAS.BlindMatch.Controllers
             if (ModelState.IsValid)
             {
                 var user = await _userManager.FindByIdAsync(model.Id);
-                if (user == null)
-                {
-                    return NotFound();
-                }
+                if (user == null) return NotFound();
 
                 user.FirstName = model.FirstName;
                 user.LastName = model.LastName;
@@ -244,7 +236,6 @@ namespace PAS.BlindMatch.Controllers
                 user.UserName = model.Email;
                 user.UniversityId = model.UniversityId;
 
-                // Handle optional password reset
                 if (!string.IsNullOrEmpty(model.NewPassword))
                 {
                     var token = await _userManager.GeneratePasswordResetTokenAsync(user);
@@ -253,9 +244,7 @@ namespace PAS.BlindMatch.Controllers
                     if (!passwordResult.Succeeded)
                     {
                         foreach (var error in passwordResult.Errors)
-                        {
                             ModelState.AddModelError(string.Empty, error.Description);
-                        }
                         return View(model);
                     }
                 }
@@ -264,22 +253,51 @@ namespace PAS.BlindMatch.Controllers
 
                 if (result.Succeeded)
                 {
-                    // Update role if changed
                     var currentRoles = await _userManager.GetRolesAsync(user);
                     await _userManager.RemoveFromRolesAsync(user, currentRoles);
                     await _userManager.AddToRoleAsync(user, model.Role);
 
-                    TempData["SuccessMessage"] = $"{user.FirstName}'s profile was successfully updated.";
+                    TempData["SuccessMessage"] = $"{user.FirstName}'s profile updated.";
                     return RedirectToAction("UserManagement");
                 }
 
                 foreach (var error in result.Errors)
-                {
                     ModelState.AddModelError(string.Empty, error.Description);
-                }
             }
 
             return View(model);
+        }
+
+        // POST: Admin/ResetProject
+        [HttpPost]
+        public async Task<IActionResult> ResetProject(int projectId)
+        {
+            await _matchingService.ResetProjectStatusAsync(projectId);
+            TempData["SuccessMessage"] = "Project has been reset to Pending status.";
+            return RedirectToAction(nameof(AllocationOversight));
+        }
+
+        // GET: Admin/ReassignProject
+        [HttpGet]
+        public async Task<IActionResult> ReassignProject(int projectId)
+        {
+            var project = await _context.Projects.FindAsync(projectId);
+            if (project == null) return NotFound();
+
+            // Get all supervisors for the dropdown
+            var supervisors = await _userManager.GetUsersInRoleAsync("Supervisor");
+
+            ViewBag.Supervisors = new SelectList(supervisors, "Id", "FirstName");
+            return View(project);
+        }
+
+        // POST: Admin/ReassignProject
+        [HttpPost]
+        public async Task<IActionResult> ReassignProject(int projectId, string newSupervisorId)
+        {
+            await _matchingService.ReassignProjectAsync(projectId, newSupervisorId);
+            TempData["SuccessMessage"] = "Project successfully reassigned to new supervisor.";
+            return RedirectToAction(nameof(AllocationOversight));
         }
     }
 }

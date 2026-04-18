@@ -1,232 +1,111 @@
 ﻿@model IEnumerable<PAS.BlindMatch.Models.Project>
+@{
+    ViewData["Title"] = "Project Allocation Oversight";
+}
 
-<style>
-    body {
-        background-color: #f8f9fa;
-        font-family: 'Inter', -apple-system, sans-serif;
-        color: #333;
-    }
-
-    .page-header {
-        margin-bottom: 2rem;
-    }
-
-        .page-header h1 {
-            font-size: 1.75rem;
-            font-weight: 700;
-            margin-bottom: 0.25rem;
-        }
-
-        .page-header p {
-            color: #6c757d;
-            font-size: 0.95rem;
-        }
-
-    .main-grid {
-        display: grid;
-        grid-template-columns: 320px 1fr;
-        gap: 2rem;
-        align-items: start;
-    }
-
-    .glass-card {
-        background: white;
-        padding: 1.5rem;
-        border-radius: 12px;
-        border: 1px solid #eee;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-    }
-
-    .card-title {
-        font-size: 1.1rem;
-        font-weight: 700;
-        margin-bottom: 1.5rem;
-    }
-
-    .form-group {
-        margin-bottom: 1.25rem;
-    }
-
-        .form-group label {
-            display: block;
-            font-size: 0.85rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: #495057;
-        }
-
-    .form-control {
-        width: 100%;
-        padding: 0.6rem 0.8rem;
-        border: 1px solid #dee2e6;
-        border-radius: 6px;
-        background-color: #fff;
-    }
-
-    .btn-provision {
-        width: 100%;
-        background: #212529;
-        color: white;
-        padding: 0.75rem;
-        border-radius: 30px;
-        border: none;
-        font-weight: 600;
-        cursor: pointer;
-        margin-top: 0.5rem;
-    }
-
-    .btn-outline-edit {
-        border: 1px solid #ced4da;
-        background: white;
-        padding: 0.4rem 1rem;
-        border-radius: 20px;
-        color: #333;
-        text-decoration: none;
-        font-size: 0.85rem;
-        display: inline-block;
-    }
-
-    .btn-outline-delete {
-        border: 1px solid #dc3545;
-        background: white;
-        padding: 0.4rem 1rem;
-        border-radius: 20px;
-        color: #dc3545;
-        font-size: 0.85rem;
-        cursor: pointer;
-        border: 1px solid #dc3545;
-    }
-
-    .custom-table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-
-        .custom-table th {
-            color: #6c757d;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            padding: 1rem;
-            border-bottom: 2px solid #f8f9fa;
-            text-align: left;
-            letter-spacing: 0.05em;
-        }
-
-        .custom-table td {
-            padding: 1.2rem 1rem;
-            border-bottom: 1px solid #f8f9fa;
-            font-size: 0.9rem;
-        }
-
-    .status-pill {
-        padding: 4px 12px;
-        border-radius: 12px;
-        font-size: 0.75rem;
-        font-weight: 600;
-        color: white;
-        display: inline-block;
-    }
-
-    .status-matched {
-        background-color: #28a745;
-    }
-
-    .status-pending {
-        background-color: #fd7e14;
-    }
-
-    .badge-category {
-        background: #e7f5ff;
-        color: #1971c2;
-        padding: 4px 10px;
-        border-radius: 6px;
-        font-weight: 500;
-    }
-</style>
-
-<div class="page-header">
-    <h1>Project Allocation Oversight</h1>
-    <p>Monitor and manage all student-supervisor pairings and project statuses.</p>
-</div>
-
-<div class="main-grid">
-    <div class="glass-card">
-        <h3 class="card-title">Search & Filter</h3>
-        <form method="get">
-            <div class="form-group">
-                <label>Search Bar</label>
-                <input type="text" name="searchString" class="form-control" placeholder="Project, Student, Supervisor..." value="@Context.Request.Query["searchString"]" />
-            </div>
-            <div class="form-group">
-                <label>Project Status</label>
-                <select name="statusFilter" class="form-control" asp-items="ViewBag.StatusOptions">
-                    <option value="">-- All Statuses --</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Category</label>
-                <select name="categoryFilter" class="form-control" asp-items="ViewBag.CategoryOptions">
-                    <option value="">-- All Categories --</option>
-                </select>
-            </div>
-            <button type="submit" class="btn-provision">Apply Filter</button>
-            <a asp-action="AllocationOversight" style="display:block; text-align:center; margin-top:10px; font-size:0.85rem; color:#6c757d; text-decoration:none;">Clear All</a>
-        </form>
+<div class="mt-4">
+    <div class="mb-4">
+        <h2 class="fw-bolder text-dark mb-1" style="letter-spacing: -0.5px;">Allocation Oversight</h2>
+        <p class="text-muted">Monitor and manage all student-supervisor pairings and project statuses.</p>
     </div>
 
-    <div class="glass-card">
-        <h3 class="card-title">Oversight Master List</h3>
-        <table class="custom-table">
-            <thead>
-                <tr>
-                    <th>Project Title</th>
-                    <th>Category</th>
-                    <th>Student</th>
-                    <th>Supervisor</th>
-                    <th>Status</th>
-                    <th style="text-align:right">Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (Model != null && Model.Any())
-                {
-                    @foreach (var project in Model)
-                    {
-                        <tr>
-                            <td style="font-weight: 600; max-width: 250px;">@project.Title</td>
-                            <td>
-                                <span class="badge-category">
-                                    @(project.ResearchArea?.Name ?? "General")
-                                </span>
-                            </td>
-                            <td>@project.Student?.FirstName @project.Student?.LastName</td>
-                            <td>
-                                @* Assuming Supervisor name is available via a MatchRequest or similar *@
-                                @(project.MatchRequests?.FirstOrDefault(m => m.Status.ToString() == "Accepted")?.Supervisor?.FirstName ?? "Not Assigned")
-                            </td>
-                            <td>
-                                <span class="status-pill @(project.Status.ToString() == "Matched" ? "status-matched" : "status-pending")">
-                                    @project.Status
-                                </span>
-                            </td>
-                            <td style="text-align:right">
-                                <div style="display: flex; gap: 8px; justify-content: flex-end;">
-                                    <a asp-action="EditUser" asp-route-id="@project.StudentId" class="btn-outline-edit">Edit</a>
-                                    <form method="post" asp-action="DeleteAllocation" asp-route-projectId="@project.Id" style="display:inline;" onsubmit="return confirm('Revoke this allocation?');">
-                                        <button type="submit" class="btn-outline-delete">Delete</button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    }
-                }
-                else
-                {
-                    <tr>
-                        <td colspan="6" style="text-align:center; color:#999; padding:2rem;">No projects found matching the criteria.</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success border-success-subtle bg-success bg-opacity-10 py-2">
+            <span class="text-success small fw-medium">@TempData["SuccessMessage"]</span>
+        </div>
+    }
+
+    <div class="row g-4">
+        <div class="col-lg-3">
+            <div class="card border-secondary-subtle shadow-sm rounded-4 p-4 h-100">
+                <h5 class="fw-bolder mb-4">Filters</h5>
+                <form method="get">
+                    <div class="mb-3">
+                        <label class="form-label small text-muted mb-1 fw-bold">Search</label>
+                        <input type="text" name="searchString" class="form-control border-secondary-subtle" placeholder="Search..." value="@Context.Request.Query["searchString"]" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-muted mb-1 fw-bold">Status</label>
+                        <select name="statusFilter" class="form-select border-secondary-subtle" asp-items="ViewBag.StatusOptions">
+                            <option value="">-- All Statuses --</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label small text-muted mb-1 fw-bold">Category</label>
+                        <select name="categoryFilter" class="form-select border-secondary-subtle" asp-items="ViewBag.CategoryOptions">
+                            <option value="">-- All Categories --</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-dark w-100 rounded-pill py-2 fw-medium mb-2">Apply Filters</button>
+                    <a asp-action="AllocationOversight" class="btn btn-link text-muted text-decoration-none w-100 small">Clear All</a>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-lg-9">
+            <div class="card border-secondary-subtle shadow-sm rounded-4 p-4 h-100">
+                <h5 class="fw-bolder mb-4">Master List</h5>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-muted small fw-bold border-0">Project Title</th>
+                                <th class="text-muted small fw-bold border-0">Category</th>
+                                <th class="text-muted small fw-bold border-0">Student</th>
+                                <th class="text-muted small fw-bold border-0">Supervisor</th>
+                                <th class="text-muted small fw-bold border-0">Status</th>
+                                <th class="text-muted small fw-bold border-0 text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="border-top-0">
+                            @if (Model != null && Model.Any())
+                            {
+                                @foreach (var project in Model)
+                                {
+                                    <tr>
+                                        <td class="fw-medium text-truncate" style="max-width: 200px;" title="@project.Title">@project.Title</td>
+                                        <td><span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary-subtle rounded-pill">@(project.ResearchArea?.Name ?? "General")</span></td>
+                                        <td class="small">@project.Student?.FirstName @project.Student?.LastName</td>
+                                        <td class="small text-muted">
+                                            @(project.MatchRequests?.FirstOrDefault(m => m.Status.ToString() == "Confirmed")?.Supervisor?.FirstName ?? "Not Assigned")
+                                        </td>
+                                        <td>
+                                            <span class="badge @(project.Status.ToString() == "Matched" ? "bg-success" : "bg-warning text-dark") rounded-pill px-3">
+                                                @project.Status
+                                            </span>
+                                        </td>
+                                        <td style="text-align:right">
+                                            <div class="d-flex justify-content-end align-items-center gap-2">
+                                                <a asp-action="ReassignProject" asp-route-projectId="@project.Id"
+                                                   class="btn btn-sm btn-outline-dark rounded-pill px-3">Reassign</a>
+
+                                                <form method="post" asp-action="ResetProject" asp-route-projectId="@project.Id" class="m-0">
+                                                    <button type="submit" class="btn btn-sm btn-outline-warning rounded-pill px-3"
+                                                            onclick="return confirm('This will break all existing matches for this project. Continue?')">
+                                                        Reset
+                                                    </button>
+                                                </form>
+
+                                                <form method="post" asp-action="DeleteAllocation" asp-route-projectId="@project.Id" class="m-0">
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3">Delete</button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="6" class="text-center py-5 text-muted small">No projects found matching the criteria.</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
 </div>

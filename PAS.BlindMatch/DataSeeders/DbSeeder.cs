@@ -2,6 +2,10 @@
 using Microsoft.EntityFrameworkCore;
 using PAS.BlindMatch.Data;
 using PAS.BlindMatch.Models;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace PAS.BlindMatch.DataSeeders
 {
@@ -15,9 +19,8 @@ namespace PAS.BlindMatch.DataSeeders
 
             await context.Database.MigrateAsync();
 
-            // Roles
+            
             string[] roles = { "Admin", "Supervisor", "Student" };
-
             foreach (var role in roles)
             {
                 if (!await roleManager.RoleExistsAsync(role))
@@ -26,13 +29,11 @@ namespace PAS.BlindMatch.DataSeeders
                 }
             }
 
-            // Admin
+            
             var adminEmail = "admin@nsbm.ac.lk";
-            var admin = await userManager.FindByEmailAsync(adminEmail);
-
-            if (admin == null)
+            if (await userManager.FindByEmailAsync(adminEmail) == null)
             {
-                admin = new ApplicationUser
+                var admin = new ApplicationUser
                 {
                     UserName = adminEmail,
                     Email = adminEmail,
@@ -41,21 +42,17 @@ namespace PAS.BlindMatch.DataSeeders
                     UniversityId = "ADMIN001",
                     EmailConfirmed = true
                 };
-
-                var result = await userManager.CreateAsync(admin, "Admin123!");
-                if (result.Succeeded)
+                if ((await userManager.CreateAsync(admin, "Admin123!")).Succeeded)
                 {
                     await userManager.AddToRoleAsync(admin, "Admin");
                 }
             }
 
-            // Supervisor
+            
             var supEmail = "supervisor@nsbm.ac.lk";
-            var sup = await userManager.FindByEmailAsync(supEmail);
-
-            if (sup == null)
+            if (await userManager.FindByEmailAsync(supEmail) == null)
             {
-                sup = new ApplicationUser
+                var sup = new ApplicationUser
                 {
                     UserName = supEmail,
                     Email = supEmail,
@@ -64,15 +61,32 @@ namespace PAS.BlindMatch.DataSeeders
                     UniversityId = "SUP001",
                     EmailConfirmed = true
                 };
-
-                var result = await userManager.CreateAsync(sup, "Supervisor123!");
-                if (result.Succeeded)
+                if ((await userManager.CreateAsync(sup, "Supervisor123!")).Succeeded)
                 {
                     await userManager.AddToRoleAsync(sup, "Supervisor");
                 }
             }
 
-            // Research Areas
+            
+            var studentEmail = "student@nsbm.ac.lk";
+            if (await userManager.FindByEmailAsync(studentEmail) == null)
+            {
+                var student = new ApplicationUser
+                {
+                    UserName = studentEmail,
+                    Email = studentEmail,
+                    FirstName = "Test",
+                    LastName = "Student",
+                    UniversityId = "STU001",
+                    EmailConfirmed = true
+                };
+                if ((await userManager.CreateAsync(student, "Student123!")).Succeeded)
+                {
+                    await userManager.AddToRoleAsync(student, "Student");
+                }
+            }
+
+            // 5. Seed Research Areas
             if (!context.ResearchAreas.Any())
             {
                 context.ResearchAreas.AddRange(
@@ -81,7 +95,6 @@ namespace PAS.BlindMatch.DataSeeders
                     new ResearchArea { Name = "Cybersecurity" },
                     new ResearchArea { Name = "Cloud Computing" }
                 );
-
                 await context.SaveChangesAsync();
             }
         }

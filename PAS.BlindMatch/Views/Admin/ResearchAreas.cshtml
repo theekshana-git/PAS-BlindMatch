@@ -1,205 +1,64 @@
-﻿@* @model IEnumerable<PAS.BlindMatch.Models.ResearchArea> *@
-
+﻿@model IEnumerable<PAS.BlindMatch.Models.ResearchArea>
 @{
     ViewData["Title"] = "Manage Research Areas";
 }
 
-<style>
-    body {
-        background-color: #f8f9fa;
-        font-family: 'Inter', -apple-system, sans-serif;
-        color: #333;
-    }
-
-    .page-header {
-        margin-bottom: 2rem;
-    }
-
-        .page-header h1 {
-            font-size: 1.75rem;
-            font-weight: 700;
-            margin-bottom: 0.25rem;
-        }
-
-        .page-header p {
-            color: #6c757d;
-            font-size: 0.95rem;
-        }
-
-    .main-grid {
-        display: grid;
-        grid-template-columns: 350px 1fr;
-        gap: 2rem;
-        align-items: start;
-    }
-
-    /* Card Styling */
-    .glass-card {
-        background: white;
-        padding: 1.5rem;
-        border-radius: 12px;
-        border: 1px solid #eee;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-    }
-
-    .card-title {
-        font-size: 1.1rem;
-        font-weight: 700;
-        margin-bottom: 1.5rem;
-    }
-
-    /* Form Inputs */
-    .form-group {
-        margin-bottom: 1.25rem;
-    }
-
-        .form-group label {
-            display: block;
-            font-size: 0.85rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: #495057;
-        }
-
-    .form-control {
-        width: 100%;
-        padding: 0.6rem 0.8rem;
-        border: 1px solid #dee2e6;
-        border-radius: 6px;
-        background-color: #fff;
-        transition: border-color 0.2s;
-    }
-
-        .form-control:focus {
-            border-color: #212529;
-            outline: none;
-        }
-
-    /* Buttons */
-    .btn-provision {
-        width: 100%;
-        background: #212529;
-        color: white;
-        padding: 0.75rem;
-        border-radius: 30px;
-        border: none;
-        font-weight: 600;
-        cursor: pointer;
-        margin-top: 1rem;
-    }
-
-        .btn-provision:hover {
-            background: #000;
-        }
-
-    .btn-outline-edit {
-        border: 1px solid #ced4da;
-        background: white;
-        padding: 0.4rem 1rem;
-        border-radius: 20px;
-        color: #333;
-        text-decoration: none;
-        font-size: 0.85rem;
-    }
-
-    .btn-outline-delete {
-        border: 1px solid #dc3545;
-        background: white;
-        padding: 0.4rem 1rem;
-        border-radius: 20px;
-        color: #dc3545;
-        font-size: 0.85rem;
-        cursor: pointer;
-    }
-
-    /* Table Styling */
-    .custom-table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-
-        .custom-table th {
-            color: #6c757d;
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            padding: 1rem;
-            border-bottom: 2px solid #f8f9fa;
-            text-align: left;
-        }
-
-        .custom-table td {
-            padding: 1.2rem 1rem;
-            border-bottom: 1px solid #f8f9fa;
-            font-size: 0.9rem;
-            vertical-align: middle;
-        }
-
-    /* Role Badges */
-    .badge {
-        padding: 4px 12px;
-        border-radius: 15px;
-        font-size: 0.75rem;
-        font-weight: 600;
-    }
-
-    .badge-admin {
-        background: #ffe3e3;
-        color: #e03131;
-    }
-
-    .badge-student {
-        background: #f1f3f5;
-        color: #495057;
-    }
-
-    .badge-supervisor {
-        background: #e7f5ff;
-        color: #1971c2;
-    }
-</style>
-
-<div class="page-header">
-    <h1>Research Areas</h1>
-    <p>Manage the global categories available for student projects.</p>
-</div>
-
-<div class="main-grid">
-    <div class="glass-card">
-        <h3 class="card-title">Add New Category</h3>
-        <form method="post" asp-action="AddResearchArea">
-            <div class="form-group">
-                <label>Category Name</label>
-                <input type="text" name="areaName" class="form-control" placeholder="e.g. Artificial Intelligence" required />
-            </div>
-            <button type="submit" class="btn-provision">Add Category</button>
-        </form>
+<div class="mt-4">
+    <div class="mb-4">
+        <h2 class="fw-bolder text-dark mb-1" style="letter-spacing: -0.5px;">Research Areas</h2>
+        <p class="text-muted">Manage the global categories available for student projects.</p>
     </div>
 
-    <div class="glass-card">
-        <h3 class="card-title">Active Research Areas</h3>
-        <table class="custom-table">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th style="text-align:right">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var area in Model)
-                {
-                    <tr>
-                        <td style="color:#6c757d; font-family: monospace;">@area.Id.ToString("D5")</td>
-                        <td style="font-weight: 500;">@area.Name</td>
-                        <td style="text-align:right">
-                            <form method="post" asp-action="DeleteResearchArea" asp-route-id="@area.Id" style="display:inline;">
-                                <button type="submit" class="btn-outline-delete">Delete</button>
-                            </form>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success border-success-subtle bg-success bg-opacity-10 py-2">
+            <span class="text-success small fw-medium">@TempData["SuccessMessage"]</span>
+        </div>
+    }
+
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="card border-secondary-subtle shadow-sm rounded-4 p-4 h-100">
+                <h5 class="fw-bolder mb-4">Add Category</h5>
+                <form method="post" asp-action="AddResearchArea">
+                    <div class="mb-4">
+                        <label class="form-label small text-muted mb-1 fw-bold">Category Name</label>
+                        <input type="text" name="areaName" class="form-control border-secondary-subtle" placeholder="e.g. Artificial Intelligence" required />
+                    </div>
+                    <button type="submit" class="btn btn-dark w-100 rounded-pill py-2 fw-medium">Add Category</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card border-secondary-subtle shadow-sm rounded-4 p-4 h-100">
+                <h5 class="fw-bolder mb-4">Active Research Areas</h5>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-muted small fw-bold border-0">ID</th>
+                                <th class="text-muted small fw-bold border-0">Name</th>
+                                <th class="text-muted small fw-bold border-0 text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="border-top-0">
+                            @foreach (var area in Model)
+                            {
+                                <tr>
+                                    <td class="small text-muted font-monospace">@area.Id.ToString("D5")</td>
+                                    <td class="fw-medium">@area.Name</td>
+                                    <td class="text-end">
+                                        <form method="post" asp-action="DeleteResearchArea" asp-route-id="@area.Id" class="m-0">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3">Delete</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
 </div>

@@ -1,6 +1,7 @@
 ﻿using PAS.BlindMatch.Enums;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace PAS.BlindMatch.Models
 {
@@ -12,24 +13,31 @@ namespace PAS.BlindMatch.Models
         [StringLength(100, ErrorMessage = "The title cannot exceed 100 characters.")]
         public string Title { get; set; } = string.Empty;
 
-        // A+ Requirement: Lock down the Abstract field
         [Required(ErrorMessage = "You must provide a project abstract.")]
         [MinLength(50, ErrorMessage = "The abstract must be at least 50 characters long.")]
+        [MaxLength(2000, ErrorMessage = "The abstract cannot exceed 2000 characters.")]
         public string Abstract { get; set; } = string.Empty;
 
-        // Optional field based on your original model
+        
+        [StringLength(200)]
+        [RegularExpression(@"^[a-zA-Z0-9\s,+#\-\.]*$", ErrorMessage = "Tech stack contains invalid characters.")]
         public string? TechnicalStack { get; set; }
 
         [Required(ErrorMessage = "Please select a Research Area.")]
         public int ResearchAreaId { get; set; }
+
+        
         public ResearchArea? ResearchArea { get; set; }
 
+        
         public string? StudentId { get; set; }
+
+        
         public ApplicationUser? Student { get; set; }
 
         public ProjectStatus Status { get; set; }
 
-        // Restored navigation property so EF Core doesn't crash
+        
         public ICollection<MatchRequest>? MatchRequests { get; set; }
     }
 }

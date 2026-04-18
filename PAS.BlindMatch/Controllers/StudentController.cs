@@ -23,9 +23,6 @@ namespace PAS.BlindMatch.Controllers
             _userManager = userManager;
         }
 
-        // ==========================================
-        // 1. SUBMIT PROJECT PAGE (The Form)
-        // ==========================================
         [HttpGet]
         public async Task<IActionResult> MyProject()
         {
@@ -33,14 +30,12 @@ namespace PAS.BlindMatch.Controllers
             if (user == null) return Challenge();
 
             bool hasMatchedProject = await _context.Projects
-                .AnyAsync(p => p.StudentId == user!.Id && p.Status == ProjectStatus.Matched);
+                .AnyAsync(p => p.StudentId == user.Id && p.Status == ProjectStatus.Matched);
 
             ViewBag.HasMatchedProject = hasMatchedProject;
+            ViewBag.ResearchAreas = new SelectList(await _context.ResearchAreas.ToListAsync(), "Id", "Name");
 
-            var researchAreas = await _context.ResearchAreas.ToListAsync();
-            ViewBag.ResearchAreas = new SelectList(researchAreas, "Id", "Name");
-
-            return View();
+            return View(new Project());
         }
 
         [HttpPost]
@@ -50,7 +45,7 @@ namespace PAS.BlindMatch.Controllers
             if (user == null) return Challenge();
 
             bool hasMatchedProject = await _context.Projects
-                .AnyAsync(p => p.StudentId == user!.Id && p.Status == ProjectStatus.Matched);
+                .AnyAsync(p => p.StudentId == user.Id && p.Status == ProjectStatus.Matched);
 
             if (hasMatchedProject)
             {
@@ -60,26 +55,25 @@ namespace PAS.BlindMatch.Controllers
 
             if (ModelState.IsValid)
             {
-                project.StudentId = user!.Id;
+                project.StudentId = user.Id;
                 project.Status = ProjectStatus.Pending;
 
                 _context.Projects.Add(project);
                 await _context.SaveChangesAsync();
 
-                TempData["SuccessMessage"] = "Project submitted successfully! Check 'My Proposals' to track its status.";
-                return RedirectToAction(nameof(MyProject));
+                TempData["SuccessMessage"] = "Project submitted successfully!";
+                return RedirectToAction(nameof(MyProposals));
             }
 
-            ViewBag.HasMatchedProject = false;
-            var researchAreas = await _context.ResearchAreas.ToListAsync();
-            ViewBag.ResearchAreas = new SelectList(researchAreas, "Id", "Name");
+            
+            TempData["ErrorMessage"] = "Submission failed. Please check the requirements (Abstract must be 50+ chars).";
 
+            ViewBag.HasMatchedProject = false;
+            ViewBag.ResearchAreas = new SelectList(await _context.ResearchAreas.ToListAsync(), "Id", "Name");
             return View("MyProject", project);
         }
 
-        // ==========================================
-        // 2. MY PROPOSALS PAGE (The History List)
-        // ==========================================
+
         [HttpGet]
         public async Task<IActionResult> MyProposals()
         {
@@ -88,11 +82,85 @@ namespace PAS.BlindMatch.Controllers
 
             var myProjects = await _context.Projects
                 .Include(p => p.ResearchArea)
-                .Where(p => p.StudentId == user!.Id)
+                .Include(p => p.MatchRequests)
+                    .ThenInclude(m => m.Supervisor)
+                .Where(p => p.StudentId == user.Id)
                 .OrderByDescending(p => p.Id)
                 .ToListAsync();
 
             return View(myProjects);
+        }
+
+        
+        [HttpPost]
+        public async Task<IActionResult> WithdrawProject(int projectId)
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            var project = await _context.Projects
+                .FirstOrDefaultAsync(p => p.Id == projectId && p.StudentId == user.Id);
+
+            if (project == null || project.Status == ProjectStatus.Matched)
+            {
+                TempData["ErrorMessage"] = "Cannot withdraw this project.";
+                return RedirectToAction(nameof(MyProposals));
+            }
+
+            _context.Projects.Remove(project);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Proposal successfully withdrawn.";
+            return RedirectToAction(nameof(MyProposals));
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> EditProject(int projectId)
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            var project = await _context.Projects
+                .FirstOrDefaultAsync(p => p.Id == projectId && p.StudentId == user.Id);
+
+            if (project == null || project.Status == ProjectStatus.Matched)
+            {
+                TempData["ErrorMessage"] = "Cannot edit this project.";
+                return RedirectToAction(nameof(MyProposals));
+            }
+
+            ViewBag.HasMatchedProject = false;
+            ViewBag.ResearchAreas = new SelectList(await _context.ResearchAreas.ToListAsync(), "Id", "Name", project.ResearchAreaId);
+            return View("MyProject", project);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EditProject(Project updatedProject)
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            var existingProject = await _context.Projects
+                .FirstOrDefaultAsync(p => p.Id == updatedProject.Id && p.StudentId == user.Id);
+
+            if (existingProject == null || existingProject.Status == ProjectStatus.Matched)
+            {
+                TempData["ErrorMessage"] = "Update failed. Project locked or not found.";
+                return RedirectToAction(nameof(MyProposals));
+            }
+
+            if (ModelState.IsValid)
+            {
+                existingProject.Title = updatedProject.Title;
+                existingProject.Abstract = updatedProject.Abstract;
+                existingProject.TechnicalStack = updatedProject.TechnicalStack;
+                existingProject.ResearchAreaId = updatedProject.ResearchAreaId;
+
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Proposal updated successfully.";
+                return RedirectToAction(nameof(MyProposals));
+            }
+
+            ViewBag.HasMatchedProject = false;
+            ViewBag.ResearchAreas = new SelectList(await _context.ResearchAreas.ToListAsync(), "Id", "Name", updatedProject.ResearchAreaId);
+            return View("MyProject", updatedProject);
         }
     }
 }

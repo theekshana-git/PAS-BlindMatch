@@ -22,5 +22,6 @@ namespace PAS.BlindMatch.ViewModels
         // Identity Reveal Data
         public string StudentName { get; set; }
         public string StudentEmail { get; set; }
+        public string StudentUniversityId { get; set; }
     }
 }

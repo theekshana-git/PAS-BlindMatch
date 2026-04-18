@@ -1,79 +1,77 @@
 ﻿@model PAS.BlindMatch.Models.Project
-
 @{
     ViewData["Title"] = "My Project Submission";
     bool hasMatchedProject = ViewBag.HasMatchedProject ?? false;
 }
 
-<style>
-    /* Added margin-top to push the header down */
-    .page-header { margin-top: 2rem; margin-bottom: 2rem; } 
-    .page-header h1 { font-size: 1.75rem; font-weight: 700; margin-bottom: 0.25rem; }
-    .page-header p { color: #6c757d; font-size: 0.95rem; }
+<div class="mt-4 mx-auto" style="max-width: 700px;">
+    <div class="mb-4">
+        <h2 class="fw-bolder text-dark mb-1" style="letter-spacing: -0.5px;">Project Proposal</h2>
+        <p class="text-muted">Submit or edit your idea for the BlindMatch system.</p>
+    </div>
 
-    .glass-card { background: white; padding: 2rem; border-radius: 12px; border: 1px solid #eee; box-shadow: 0 4px 12px rgba(0,0,0,0.03); max-width: 600px; margin-top: 1rem; }
-    .form-group { margin-bottom: 1.25rem; }
-    .form-group label { font-weight: 600; margin-bottom: 0.5rem; display: block; color: #495057; }
-    .form-control { width: 100%; padding: 0.75rem; border: 1px solid #dee2e6; border-radius: 6px; }
-    .text-danger { color: #dc3545; font-size: 0.85rem; margin-top: 0.25rem; display: block; }
-    .btn-submit { background: #212529; color: white; padding: 0.75rem 1.5rem; border: none; border-radius: 30px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 10px; }
-    .alert-locked { background: #d4edda; color: #155724; padding: 1.5rem; border-radius: 8px; border: 1px solid #c3e6cb; margin-top: 1rem; max-width: 600px; }
-</style>
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success border-success-subtle bg-success bg-opacity-10 py-2">
+            <span class="text-success small fw-medium">@TempData["SuccessMessage"]</span>
+        </div>
+    }
 
-<div class="page-header">
-    <h1>Project Proposal</h1>
-    <p>Submit your idea to the BlindMatch system.</p>
+    @if (hasMatchedProject)
+    {
+        <div class="alert alert-success border-success-subtle bg-success bg-opacity-10 p-4 rounded-4 shadow-sm">
+            <h4 class="fw-bold">🔒 Submission Locked</h4>
+            <p class="mb-0">Congratulations! You have already been matched with a supervisor. You cannot submit or edit project proposals.</p>
+        </div>
+    }
+    else
+    {
+        <div class="card border-secondary-subtle shadow-sm rounded-4 p-4 p-md-5">
+            <form asp-action="@(Model?.Id > 0 ? "EditProject" : "SubmitProject")" asp-controller="Student" method="post">
+                <div asp-validation-summary="All" class="text-danger small mb-3"></div>
+                @if (Model?.Id > 0)
+                {
+                    <input type="hidden" asp-for="Id" />
+                }
+
+                <div class="mb-3">
+                    <label asp-for="Title" class="form-label small text-muted mb-1 fw-bold">Project Title</label>
+                    <input asp-for="Title" class="form-control border-secondary-subtle" placeholder="Enter a descriptive title..." />
+                    <span asp-validation-for="Title" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="ResearchAreaId" class="form-label small text-muted mb-1 fw-bold">Research Area</label>
+                    <select asp-for="ResearchAreaId" class="form-select border-secondary-subtle" asp-items="ViewBag.ResearchAreas">
+                        <option value="">-- Select a Category --</option>
+                    </select>
+                    <span asp-validation-for="ResearchAreaId" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Abstract" class="form-label small text-muted mb-1 fw-bold">Project Abstract</label>
+                    <textarea asp-for="Abstract" class="form-control border-secondary-subtle" rows="6" placeholder="Provide a detailed abstract (minimum 50 characters)..."></textarea>
+                    <span asp-validation-for="Abstract" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="TechnicalStack" class="form-label small text-muted mb-1 fw-bold">Technical Stack</label>
+                    <input asp-for="TechnicalStack" class="form-control border-secondary-subtle" placeholder="e.g., React, Python, AWS..." />
+                    <span asp-validation-for="TechnicalStack" class="text-danger small"></span>
+                </div>
+
+                <div class="text-end border-top pt-4">
+                    <button type="submit" class="btn btn-dark rounded-pill px-5 py-2 fw-medium">
+                        @(Model?.Id > 0 ? "Update Proposal" : "Submit Proposal")
+                    </button>
+                </div>
+            </form>
+        </div>
+    }
 </div>
 
-@if (TempData["SuccessMessage"] != null)
-{
-    <div style="background: #e2e3e5; color: #383d41; padding: 1rem; border-radius: 6px; margin-bottom: 1rem; max-width: 600px;">
-        @TempData["SuccessMessage"]
-    </div>
-}
-
-@if (hasMatchedProject)
-{
-    <div class="alert-locked">
-        <h4>🔒 Submission Locked</h4>
-        <p>Congratulations! You have already been matched with a supervisor. You cannot submit any further project proposals.</p>
-    </div>
-}
-else
-{
-    <div class="glass-card">
-        <form asp-action="SubmitProject" asp-controller="Student" method="post">
-            
-            <div class="form-group">
-                <label asp-for="Title">Project Title</label>
-                <input asp-for="Title" class="form-control" placeholder="Enter a descriptive title..." />
-                <span asp-validation-for="Title" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <label asp-for="ResearchAreaId">Research Area</label>
-                <select asp-for="ResearchAreaId" class="form-control" asp-items="ViewBag.ResearchAreas">
-                    <option value="">-- Select a Category --</option>
-                </select>
-                <span asp-validation-for="ResearchAreaId" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <label asp-for="Abstract">Project Abstract</label>
-                <textarea asp-for="Abstract" class="form-control" rows="6" placeholder="Provide a detailed abstract (minimum 50 characters)..."></textarea>
-                <span asp-validation-for="Abstract" class="text-danger"></span>
-            </div>
-            
-            <div class="form-group">
-                <label asp-for="TechnicalStack">Technical Stack (Optional)</label>
-                <input asp-for="TechnicalStack" class="form-control" placeholder="e.g., React, Python, AWS..." />
-            </div>
-
-            <button type="submit" class="btn-submit">Submit Proposal</button>
-        </form>
-    </div>
-}
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

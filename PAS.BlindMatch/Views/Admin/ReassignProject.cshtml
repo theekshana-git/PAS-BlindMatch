@@ -1,0 +1,25 @@
+﻿@model PAS.BlindMatch.Models.Project
+@{
+    ViewData["Title"] = "Reassign Project";
+}
+
+<div class="mt-4 mx-auto" style="max-width: 500px;">
+    <div class="card border-secondary-subtle shadow-sm rounded-4 p-5">
+        <h3 class="fw-bolder">Reassign Project</h3>
+        <p class="text-muted small">Select a new supervisor for <strong>@Model.Title</strong></p>
+
+        <form asp-action="ReassignProject" method="post">
+            <input type="hidden" name="projectId" value="@Model.Id" />
+
+            <div class="mb-4">
+                <label class="form-label small fw-bold">Select New Supervisor</label>
+                <select name="newSupervisorId" class="form-select" asp-items="ViewBag.Supervisors" required>
+                    <option value="">-- Choose Faculty Member --</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-dark w-100 rounded-pill">Confirm Reassignment</button>
+            <a asp-action="AllocationOversight" class="btn btn-link w-100 text-muted mt-2">Cancel</a>
+        </form>
+    </div>
+</div>
