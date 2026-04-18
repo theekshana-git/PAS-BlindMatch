@@ -1,16 +1,79 @@
-﻿@{
-    ViewData["Title"] = "My Project";
+﻿@model PAS.BlindMatch.Models.Project
+
+@{
+    ViewData["Title"] = "My Project Submission";
+    bool hasMatchedProject = ViewBag.HasMatchedProject ?? false;
 }
 
-<div class="mt-4">
-    <div class="mb-4">
-        <h2 class="fw-bolder text-dark mb-1" style="letter-spacing: -0.5px;">Project Proposal</h2>
-        <p class="text-muted">Submit your final year project idea for supervisor review.</p>
-    </div>
+<style>
+    /* Added margin-top to push the header down */
+    .page-header { margin-top: 2rem; margin-bottom: 2rem; } 
+    .page-header h1 { font-size: 1.75rem; font-weight: 700; margin-bottom: 0.25rem; }
+    .page-header p { color: #6c757d; font-size: 0.95rem; }
 
-    <div class="bg-white p-5 rounded-3 border border-secondary-subtle text-center">
-        <h5 class="text-muted fw-normal">Member 2: Build your Submission Form here.</h5>
-        <p class="small text-muted">Inputs: Title, Abstract, Tech Stack, Research Area.</p>
-        <p class="small text-danger fw-bold">Remember to add Regex Data Annotations to the model for top marks!</p>
-    </div>
+    .glass-card { background: white; padding: 2rem; border-radius: 12px; border: 1px solid #eee; box-shadow: 0 4px 12px rgba(0,0,0,0.03); max-width: 600px; margin-top: 1rem; }
+    .form-group { margin-bottom: 1.25rem; }
+    .form-group label { font-weight: 600; margin-bottom: 0.5rem; display: block; color: #495057; }
+    .form-control { width: 100%; padding: 0.75rem; border: 1px solid #dee2e6; border-radius: 6px; }
+    .text-danger { color: #dc3545; font-size: 0.85rem; margin-top: 0.25rem; display: block; }
+    .btn-submit { background: #212529; color: white; padding: 0.75rem 1.5rem; border: none; border-radius: 30px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 10px; }
+    .alert-locked { background: #d4edda; color: #155724; padding: 1.5rem; border-radius: 8px; border: 1px solid #c3e6cb; margin-top: 1rem; max-width: 600px; }
+</style>
+
+<div class="page-header">
+    <h1>Project Proposal</h1>
+    <p>Submit your idea to the BlindMatch system.</p>
 </div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div style="background: #e2e3e5; color: #383d41; padding: 1rem; border-radius: 6px; margin-bottom: 1rem; max-width: 600px;">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+@if (hasMatchedProject)
+{
+    <div class="alert-locked">
+        <h4>🔒 Submission Locked</h4>
+        <p>Congratulations! You have already been matched with a supervisor. You cannot submit any further project proposals.</p>
+    </div>
+}
+else
+{
+    <div class="glass-card">
+        <form asp-action="SubmitProject" asp-controller="Student" method="post">
+            
+            <div class="form-group">
+                <label asp-for="Title">Project Title</label>
+                <input asp-for="Title" class="form-control" placeholder="Enter a descriptive title..." />
+                <span asp-validation-for="Title" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="ResearchAreaId">Research Area</label>
+                <select asp-for="ResearchAreaId" class="form-control" asp-items="ViewBag.ResearchAreas">
+                    <option value="">-- Select a Category --</option>
+                </select>
+                <span asp-validation-for="ResearchAreaId" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Abstract">Project Abstract</label>
+                <textarea asp-for="Abstract" class="form-control" rows="6" placeholder="Provide a detailed abstract (minimum 50 characters)..."></textarea>
+                <span asp-validation-for="Abstract" class="text-danger"></span>
+            </div>
+            
+            <div class="form-group">
+                <label asp-for="TechnicalStack">Technical Stack (Optional)</label>
+                <input asp-for="TechnicalStack" class="form-control" placeholder="e.g., React, Python, AWS..." />
+            </div>
+
+            <button type="submit" class="btn-submit">Submit Proposal</button>
+        </form>
+    </div>
+}
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
