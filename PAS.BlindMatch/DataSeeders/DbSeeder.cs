@@ -86,7 +86,7 @@ namespace PAS.BlindMatch.DataSeeders
                 }
             }
 
-            // 5. Seed Research Areas
+            // Seed Research Areas
             if (!context.ResearchAreas.Any())
             {
                 context.ResearchAreas.AddRange(

@@ -7,7 +7,7 @@ using PAS.BlindMatch.DataSeeders;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
@@ -27,7 +27,7 @@ builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+
 if (app.Environment.IsDevelopment())
 {
     app.UseMigrationsEndPoint();
@@ -44,7 +44,7 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-// Authentication MUST come before Authorization
+
 app.UseAuthentication();
 app.UseAuthorization();
 

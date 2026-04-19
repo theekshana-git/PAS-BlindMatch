@@ -175,10 +175,10 @@ namespace PAS.BlindMatch.Services
 
             if (project == null) throw new Exception("Project not found.");
 
-            // 1. Remove old match requests
+            // Remove old match requests
             _context.MatchRequests.RemoveRange(project.MatchRequests);
 
-            // 2. Create a new "Force-Confirmed" match
+            //Create a new "Force-Confirmed" match
             var newMatch = new MatchRequest
             {
                 ProjectId = projectId,

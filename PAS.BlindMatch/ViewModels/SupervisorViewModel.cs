@@ -4,7 +4,7 @@ namespace PAS.BlindMatch.ViewModels
 {
     public class ExpertiseViewModel
     {
-        // Changed to use an object so we can pass the ID and Name
+        
         public Dictionary<int, string> AllAvailableAreas { get; set; } = new Dictionary<int, string>();
         public List<int> SelectedAreaIds { get; set; } = new List<int>();
     }
@@ -12,7 +12,7 @@ namespace PAS.BlindMatch.ViewModels
     public class ProjectCardViewModel
     {
         public int ProjectId { get; set; }
-        public int MatchRequestId { get; set; } // NEW: Needed for your ConfirmMatch method!
+        public int MatchRequestId { get; set; } 
         public string Title { get; set; }
         public string Abstract { get; set; }
         public string TechStack { get; set; }
