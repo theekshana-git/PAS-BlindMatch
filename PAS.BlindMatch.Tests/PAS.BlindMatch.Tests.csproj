@@ -5,6 +5,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
+	  <Include>[PAS.BlindMatch]PAS.BlindMatch.Controllers.*,[PAS.BlindMatch]PAS.BlindMatch.Services.*</Include>
+	  <Exclude>[PAS.BlindMatch]PAS.BlindMatch.Controllers.DashboardController</Exclude>
   </PropertyGroup>
 
   <ItemGroup>

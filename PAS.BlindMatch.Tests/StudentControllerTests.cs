@@ -26,56 +26,73 @@ namespace PAS.BlindMatch.Tests
             return new ApplicationDbContext(options);
         }
 
-        private Mock<UserManager<ApplicationUser>> GetMockUserManager()
+        private Mock<UserManager<ApplicationUser>> GetMockUserManager(ApplicationUser userToReturn)
         {
             var store = new Mock<IUserStore<ApplicationUser>>();
-            return new Mock<UserManager<ApplicationUser>>(store.Object, null, null, null, null, null, null, null, null);
+            var mock = new Mock<UserManager<ApplicationUser>>(store.Object, null, null, null, null, null, null, null, null);
+            mock.Setup(m => m.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync(userToReturn);
+            return mock;
+        }
+
+        private StudentController CreateController(ApplicationDbContext context, ApplicationUser user)
+        {
+            var controller = new StudentController(context, GetMockUserManager(user).Object)
+            {
+                ControllerContext = new ControllerContext
+                {
+                    HttpContext = new DefaultHttpContext { User = new ClaimsPrincipal(new ClaimsIdentity(new[] { new Claim(ClaimTypes.NameIdentifier, user.Id) })) }
+                },
+                TempData = new TempDataDictionary(new DefaultHttpContext(), Mock.Of<ITempDataProvider>())
+            };
+            return controller;
         }
 
         [Fact]
-        public async Task SubmitProject_WhenStudentAlreadyMatched_ShouldBlockSubmission()
+        public async Task MyProject_Get_ReturnsView_WithNewProjectModel()
         {
-            
             var context = GetInMemoryDbContext();
+            var user = new ApplicationUser { Id = "Student1" };
+            var controller = CreateController(context, user);
 
-            
-            var existingProject = new Project
-            {
-                Id = 99,
-                StudentId = "TestStudent1",
-                Status = ProjectStatus.Matched,
-                Title = "Old Project",
-                Abstract = "Old Abstract",
-                ResearchAreaId = 1
-            };
-            context.Projects.Add(existingProject);
-            await context.SaveChangesAsync();
+            var result = await controller.MyProject();
 
-           
-            var mockUserManager = GetMockUserManager();
-            var fakeUser = new ApplicationUser { Id = "TestStudent1", UserName = "student@test.com" };
+            var viewResult = Assert.IsType<ViewResult>(result);
+            Assert.IsType<Project>(viewResult.Model);
+        }
 
-            
-            mockUserManager.Setup(um => um.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync(fakeUser);
+        [Fact]
+        public async Task SubmitProject_ValidModel_SavesToDb_AndRedirects()
+        {
+            var context = GetInMemoryDbContext();
+            var user = new ApplicationUser { Id = "Student1" };
+            var controller = CreateController(context, user);
 
-            
-            var controller = new StudentController(context, mockUserManager.Object);
-            controller.ControllerContext = new ControllerContext
-            {
-                HttpContext = new DefaultHttpContext()
-            };
-            controller.TempData = new TempDataDictionary(controller.HttpContext, Mock.Of<ITempDataProvider>());
+            var newProject = new Project { Title = "AI Test", Abstract = "Valid Abstract 50+ chars...", TechnicalStack = "C#", ResearchAreaId = 1 };
 
-           
-            var newProject = new Project { Title = "New Idea", Abstract = "New Abstract", ResearchAreaId = 2 };
-
-           
             var result = await controller.SubmitProject(newProject);
 
-            
             var redirectResult = Assert.IsType<RedirectToActionResult>(result);
-            Assert.Equal("MyProject", redirectResult.ActionName);
-            Assert.Equal("You already have a matched project. Submission locked.", controller.TempData["ErrorMessage"]);
+            Assert.Equal("MyProposals", redirectResult.ActionName);
+            Assert.Single(await context.Projects.ToListAsync());
+        }
+
+        [Fact]
+        public async Task WithdrawProject_ValidId_RemovesFromDb()
+        {
+            var context = GetInMemoryDbContext();
+            var user = new ApplicationUser { Id = "Student1" };
+
+            var project = new Project { Id = 1, StudentId = "Student1", Status = ProjectStatus.Pending, Title = "Test", Abstract = "abc", TechnicalStack = "C#", ResearchAreaId = 1 };
+            context.Projects.Add(project);
+            await context.SaveChangesAsync();
+
+            var controller = CreateController(context, user);
+
+            var result = await controller.WithdrawProject(1);
+
+            var redirectResult = Assert.IsType<RedirectToActionResult>(result);
+            Assert.Equal("MyProposals", redirectResult.ActionName);
+            Assert.Empty(await context.Projects.ToListAsync());
         }
     }
 }

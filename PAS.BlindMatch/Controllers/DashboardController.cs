@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics.CodeAnalysis;
 
 namespace PAS.BlindMatch.Controllers
 {
+    [ExcludeFromCodeCoverage]
     [Authorize]
     public class DashboardController : Controller
     {

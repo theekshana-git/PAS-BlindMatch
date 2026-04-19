@@ -26,13 +26,13 @@ namespace PAS.BlindMatch.Models
         [Required(ErrorMessage = "Please select a Research Area.")]
         public int ResearchAreaId { get; set; }
 
-        
+        [ValidateNever]
         public ResearchArea? ResearchArea { get; set; }
 
         
         public string? StudentId { get; set; }
 
-        
+        [ValidateNever]
         public ApplicationUser? Student { get; set; }
 
         public ProjectStatus Status { get; set; }
